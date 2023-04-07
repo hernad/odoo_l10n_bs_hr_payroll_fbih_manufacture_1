@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <!-- ====== Detaširani - obračun doprinosa ============ -->
+    <record id="hr_salary_rule_br_osn_dnj" model="hr.salary.rule">
+        <field name="name">Bruto osnovica detašmani</field>
+        <field name="sequence" eval="399" />
+        <field name="code">BR_OSN_DET</field>
+        <field name="appears_on_payslip" eval="True" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.BR_OSN_DET" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaok = int(payslip.rule_parameter('ZAOK'))
+# ako se obracun odnosi na 15 od 30 dana ovog mjeseca, obrac_period = 0.5
+obrac_period = (worked_days.WORK100 and worked_days.WORK100.number_of_hours) / (worked_days.FWORK100 and worked_days.FWORK100.number_of_hours)
+result_qty = 1
+result_rate = obrac_period * 100
+result = round(float(payslip.rule_parameter('BR_OSN_DNJ')), zaok)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+
+    <!-- Doprinosi PIO detašmani rules ... -->
+    <record id="hr_salary_rule_dopr_pio_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi PIO detašm Nj</field>
+        <field name="sequence" eval="400" />
+        <field name="code">D_PIO_DNJ</field>
+        <field name="appears_on_payslip" eval="True" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_PIO" />
+        <field name="register_id" ref="contrib_register_pio" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_rate = float(payslip.rule_parameter('D_IZ_PIO')) + float(payslip.rule_parameter('D_NA_PIO'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <!-- Doprinosi Zdravstvo detašmani rules ... -->
+    <record id="hr_salary_rule_dopr_zdr_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zdravstvo detašm Nj</field>
+        <field name="sequence" eval="401" />
+        <field name="code">D_ZDR_DNJ</field>
+        <field name="appears_on_payslip" eval="True" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZDR" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_rate = float(payslip.rule_parameter('D_IZ_ZDR')) + float(payslip.rule_parameter('D_NA_ZDR'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zdr_f_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zdravstvo FBiH 10.2% detašm Nj</field>
+        <field name="sequence" eval="402" />
+        <field name="code">D_ZDR_F_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZDR_F" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zdr_dnj" />
+        <field name="register_id" ref="contrib_register_zdr_f" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_rate = float(payslip.rule_parameter('D_IZ_ZDR')) + float(payslip.rule_parameter('D_NA_ZDR'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 10.2/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zdr_k1_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zdravstvo KZE-DO 89.8% detašm Nj</field>
+        <field name="sequence" eval="403" />
+        <field name="code">D_ZDR_K1_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZDR_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zdr_dnj" />
+        <field name="register_id" ref="contrib_register_zdr_k1" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KZE':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZDR')) + float(payslip.rule_parameter('D_NA_ZDR'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 89.8/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zdr_k2_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zdravstvo KSA 89.8% detašm Nj</field>
+        <field name="sequence" eval="404" />
+        <field name="code">D_ZDR_K2_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZDR_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zdr_dnj" />
+        <field name="register_id" ref="contrib_register_zdr_k2" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KSA':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZDR')) + float(payslip.rule_parameter('D_NA_ZDR'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 89.8/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zdr_k3_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zdravstvo Tuzlanski kanton 89.8% detašm Nj</field>
+        <field name="sequence" eval="404" />
+        <field name="code">D_ZDR_K3_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZDR_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zdr_dnj" />
+        <field name="register_id" ref="contrib_register_zdr_k3" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KTZ':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZDR')) + float(payslip.rule_parameter('D_NA_ZDR'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 89.8/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zdr_k4_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zdravstvo SBK 89.8% detašm Nj</field>
+        <field name="sequence" eval="405" />
+        <field name="code">D_ZDR_K4_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZDR_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zdr_dnj" />
+        <field name="register_id" ref="contrib_register_zdr_k4" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KSB':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZDR')) + float(payslip.rule_parameter('D_NA_ZDR'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 89.8/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <!-- Doprinosi Zapošljavanje rules ... -->
+    <record id="hr_salary_rule_dopr_zap_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zapošljavanje detašm Nj</field>
+        <field name="sequence" eval="406" />
+        <field name="code">D_ZAP_DNJ</field>
+        <field name="appears_on_payslip" eval="True" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZAP" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_rate = float(payslip.rule_parameter('D_IZ_ZAP')) + float(payslip.rule_parameter('D_NA_ZAP'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zap_f_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zapošljavanje 30% FBiH detašm Nj</field>
+        <field name="sequence" eval="407" />
+        <field name="code">D_ZAP_F_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZAP_F" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zap_dnj" />
+        <field name="register_id" ref="contrib_register_zap_f" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_rate = float(payslip.rule_parameter('D_IZ_ZAP')) + float(payslip.rule_parameter('D_NA_ZAP'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 30/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zap_k1_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zapošljavanje 70% KZE-DO detašm Nj</field>
+        <field name="sequence" eval="408" />
+        <field name="code">D_ZAP_K1_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZAP_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zap_dnj" />
+        <field name="register_id" ref="contrib_register_zap_k1" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KZE':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZAP')) + float(payslip.rule_parameter('D_NA_ZAP'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 70/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zap_k2_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zapošljavanje 70% KSA detašm Nj</field>
+        <field name="sequence" eval="409" />
+        <field name="code">D_ZAP_K2_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZAP_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zap_dnj" />
+        <field name="register_id" ref="contrib_register_zap_k2" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KSA':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZAP')) + float(payslip.rule_parameter('D_NA_ZAP'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 70/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zap_k3_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zapošljavanje 70% Tuzlanski kanton detašm Nj</field>
+        <field name="sequence" eval="409" />
+        <field name="code">D_ZAP_K3_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZAP_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zap_dnj" />
+        <field name="register_id" ref="contrib_register_zap_k3" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KTZ':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZAP')) + float(payslip.rule_parameter('D_NA_ZAP'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 70/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_dopr_zap_k4_dnj" model="hr.salary.rule">
+        <field name="name">Doprinosi zapošljavanje 70% SBK detašm Nj</field>
+        <field name="sequence" eval="410" />
+        <field name="code">D_ZAP_K4_DNJ</field>
+        <field name="appears_on_payslip" eval="False" />
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_ZAP_K" />
+        <field name="parent_rule_id" ref="hr_salary_rule_dopr_zap_dnj" />
+        <field name="register_id" ref="contrib_register_zap_k4" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+result_qty = 0
+if employee.address_home_id and employee.address_home_id.state_id.code == 'KSB':
+    result_qty = 1
+result_rate = float(payslip.rule_parameter('D_IZ_ZAP')) + float(payslip.rule_parameter('D_NA_ZAP'))
+br_osn_det = result_rules.BR_OSN_DET.amount * result_rules.BR_OSN_DET.quantity * result_rules.BR_OSN_DET.rate/100
+result = round(br_osn_det * 70/100, zaoku)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+     <!-- =============== Detaširani KRAJ obračuna doprinosa ========================= -->
+
+</odoo>

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+     <record id="hr_salary_rule_lic_odb" model="hr.salary.rule">
+        <field name="name">Lični odbitak - umanjenje osnovice za porez</field>
+        <field name="sequence" eval="500" />
+        <field name="code">LIC_ODB</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.LIC_ODB" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_rate = contract.koef_lo * 100
+if result_rate == 0:
+   result_qty = 0
+result = 300.00
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_bruto_osn_bp" model="hr.salary.rule">
+        <field name="name">Bruto osnova bolovanje preko 42d</field>
+        <field name="sequence" eval="501" />
+        <field name="code">BR_OSN_BP</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.BR_OSN_BP" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+bol_preko = result_rules.BOL_PREKO and round(result_rules.BOL_PREKO.amount * result_rules.BOL_PREKO.quantity, zaoku)
+result = 0
+result_qty = 0
+result_rate = 0
+if bol_preko &gt; 0.0:
+    result_rate =  result_rules.BR_OSN.rate
+    result_qty =  1
+    result = bol_preko
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_d_iz_bp" model="hr.salary.rule">
+        <field name="name">Doprinosi IZ bolovanje preko 42d</field>
+        <field name="sequence" eval="502" />
+        <field name="code">D_IZ_BP</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.D_IZ_BP" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+zaoku = int(payslip.rule_parameter('ZAOKU'))
+br_osn_bol_preko = result_rules.BR_OSN_BP and round(result_rules.BR_OSN_BP.amount * result_rules.BR_OSN_BP.quantity * result_rules.BR_OSN_BP.rate/100, zaoku)
+result = 0
+result_qty = 0
+result_rate = 0
+if br_osn_bol_preko &gt; 0.0:
+    result_rate =  float(payslip.rule_parameter('D_IZ_PIO')) + float(payslip.rule_parameter('D_IZ_ZDR')) + float(payslip.rule_parameter('D_IZ_ZAP'))
+    result_qty =  1
+    result = br_osn_bol_preko
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_porez" model="hr.salary.rule">
+        <field name="name">Porez = (BR_OSN-D_IZ-LIC_ODB) x Por%</field>
+        <field name="sequence" eval="510" />
+        <field name="code">POREZ</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.POREZ" />
+        <field name="condition_select">none</field>
+        <field name="register_id" ref="contrib_register_por" />
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result_rate = float(payslip.rule_parameter('POREZ'))
+osnovica = (categories.BR_OSN - categories.BR_OSN_BP) - (categories.D_IZ-categories.D_IZ_BP)
+lic_odb = categories.LIC_ODB
+if lic_odb > osnovica:
+    result = 0.00
+else:
+    result = osnovica - lic_odb
+result = round(result, int(payslip.rule_parameter('ZAOK')))
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_neto_pos" model="hr.salary.rule">
+        <field name="name">NETO poslije poreza</field>
+        <field name="sequence" eval="520" />
+        <field name="code">NETO_POS</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.NETO_POS" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = categories.NETO - categories.POREZ
+result = round(result, int(payslip.rule_parameter('ZAOK')))
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_sati" model="hr.salary.rule">
+        <field name="name">NETO SATI</field>
+        <field name="sequence" eval="630" />
+        <field name="code">NETO_S</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.NETO_S" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = 0
+#result_rate = 100
+days_tsh_10_sf = worked_days.TSH_10_SF and worked_days.TSH_10_SF.number_of_hours
+days_tsh_11_s = worked_days.TSH_11_S and worked_days.TSH_11_S.number_of_hours
+days_tsh_20_nf = worked_days.TSH_20_NF and worked_days.TSH_20_NF.number_of_hours
+days_tsh_21_n = worked_days.TSH_21_N and worked_days.TSH_21_N.number_of_hours
+result_qty = days_tsh_10_sf + days_tsh_11_s + days_tsh_20_nf + days_tsh_21_n
+result_qty += worked_days.DRZAVNI_PRAZNIK and abs(worked_days.DRZAVNI_PRAZNIK.number_of_hours)
+result_qty += worked_days.VJERSKI_PRAZNIK and abs(worked_days.VJERSKI_PRAZNIK.number_of_hours)
+result_qty += worked_days.BOLOVANJE and abs(worked_days.BOLOVANJE.number_of_hours)
+result_qty += worked_days.POVREDA_NA_RADU and abs(worked_days.POVREDA_NA_RADU.number_of_hours)
+#result_qty += worked_days.BOLOVANJE_PREKO_42_DANA and abs(worked_days.BOLOVANJE_PREKO_42_DANA.number_of_hours)
+result_qty += worked_days.GODISNJI_ODMOR and abs(worked_days.GODISNJI_ODMOR.number_of_hours)
+result_qty += worked_days.NEPLACENO_ODSUSTVO and abs(worked_days.NEPLACENO_ODSUSTVO.number_of_hours)
+result_qty += worked_days.REST and abs(worked_days.REST.number_of_hours)
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_sati_d" model="hr.salary.rule">
+        <field name="name">NETO SATI (d)</field>
+        <field name="sequence" eval="631" />
+        <field name="code">NETO_S</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.NETO_S" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+result = 0
+#result_rate = 100
+result_qty = worked_days.WORK100 and worked_days.WORK100.number_of_hours
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="hr_salary_rule_ukupno" model="hr.salary.rule">
+        <field name="name">== UKUPNO ZA ISPLATU ===</field>
+        <field name="sequence" eval="640" />
+        <field name="code">UKUPNO</field>
+        <field name="category_id" ref="l10n_bs_hr_payroll_fbih_manufacture_1.UKUPNO" />
+        <field name="register_id" ref="contrib_register_isp" />
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+# obustave su negativnog iznosa        
+result = categories.NETO_POS + categories.NAKN + categories.OBUST
+result = round(result, int(payslip.rule_parameter('ZAOK')))
+        </field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+
+    <record id="structure_fbih" model="hr.payroll.structure">
+        <field name="code">BASEF</field>
+        <field name="name">Fiksni obračun</field>
+        <field
+            eval="[(6, 0, [ref('hr_salary_rule_rr_f'),
+                   ref('hr_salary_rule_rrp_f'),
+                   ref('hr_salary_rule_nr_f'),
+                   ref('hr_salary_rule_dpraz_f'),
+                   ref('hr_salary_rule_vpraz_f'),
+                   ref('hr_salary_rule_r_dpraz_f'),
+                   ref('hr_salary_rule_r_dpraz_n_f'),
+                   ref('hr_salary_rule_godis_f'),
+                   ref('hr_salary_rule_bolov_f'),
+                   ref('hr_salary_rule_bolov_pov_f'),
+                   ref('hr_salary_rule_nep_ods'),
+                   ref('hr_salary_rule_rod_ods'),
+                   ref('hr_salary_rule_bolov_preko'),
+                   ref('hr_salary_rule_ceka_f'),
+                   ref('hr_salary_rule_stim_f'),
+                   ref('hr_salary_rule_stim_add'),
+                   ref('hr_salary_rule_kor_min_met'),
+                   ref('hr_salary_rule_to'),
+                   ref('hr_salary_rule_to_lim'),
+                   ref('hr_salary_rule_loan'),
+                   ref('hr_salary_rule_neto'),
+                   ref('hr_salary_rule_bruto_osn'),
+                   ref('hr_salary_rule_bruto_osn_bp'),
+                   ref('hr_salary_rule_d_iz_bp'),
+                   ref('hr_salary_rule_neto_pos'),
+                   ref('hr_salary_rule_dopr_na'),ref('hr_salary_rule_dopr_iz'),
+                   ref('hr_salary_rule_dopr_pio'),ref('hr_salary_rule_dopr_zdr'),ref('hr_salary_rule_dopr_zap'),
+                   ref('hr_salary_rule_lic_odb'),ref('hr_salary_rule_porez'),
+                   ref('hr_salary_rule_ukupno'),
+                   ref('hr_salary_rule_sati')])]"
+            name="rule_ids"
+        />
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="structure_fbih_met" model="hr.payroll.structure">
+        <field name="code">BASEF_MET</field>
+        <field name="name">Proizvodnja - metalska industrija</field>
+        <field
+            eval="[(6, 0, [ref('hr_salary_rule_rr'),
+                   ref('hr_salary_rule_rrp'),
+                   ref('hr_salary_rule_nr'),
+                   ref('hr_salary_rule_dpraz'),
+                   ref('hr_salary_rule_vpraz'),
+                   ref('hr_salary_rule_r_dpraz'),
+                   ref('hr_salary_rule_r_dpraz_n'),
+                   ref('hr_salary_rule_godis'),
+                   ref('hr_salary_rule_bolov'),
+                   ref('hr_salary_rule_bolov_pov'),
+                   ref('hr_salary_rule_ceka'),
+                   ref('hr_salary_rule_mr'),
+                   ref('hr_salary_rule_nep_ods'),
+                   ref('hr_salary_rule_rod_ods'),
+                   ref('hr_salary_rule_bolov_preko'),
+                   ref('hr_salary_rule_stim'),
+                   ref('hr_salary_rule_stim_add'),
+                   ref('hr_salary_rule_to_o'),
+                   ref('hr_salary_rule_to_lim'),
+                   ref('hr_salary_rule_kor_min_met'),
+                   ref('hr_salary_rule_to'),
+                   ref('hr_salary_rule_loan'),
+                   ref('hr_salary_rule_neto'),
+                   ref('hr_salary_rule_bruto_osn'),
+                   ref('hr_salary_rule_bruto_osn_bp'),
+                   ref('hr_salary_rule_d_iz_bp'),
+                   ref('hr_salary_rule_neto_pos'),
+                   ref('hr_salary_rule_dopr_na'),ref('hr_salary_rule_dopr_iz'),
+                   ref('hr_salary_rule_dopr_pio'),ref('hr_salary_rule_dopr_zdr'),ref('hr_salary_rule_dopr_zap'),
+                   ref('hr_salary_rule_lic_odb'),ref('hr_salary_rule_porez'),
+                   ref('hr_salary_rule_ukupno'),
+                   ref('hr_salary_rule_sati')])]"
+            name="rule_ids"
+        />
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="structure_dnj" model="hr.payroll.structure">
+        <field name="code">INO_NJ</field>
+        <field name="name">Detaširani radnici Njemačka</field>
+        <field
+            eval="[(6, 0, [ref('hr_salary_rule_br_osn_dnj'),
+                 ref('hr_salary_rule_dopr_pio_dnj'),
+                 ref('hr_salary_rule_dopr_zdr_dnj'),
+                 ref('hr_salary_rule_dopr_zap_dnj'),
+                 ref('hr_salary_rule_sati_d')])]"
+            name="rule_ids"
+        />
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+<!--
+    <record id="dep_proizvodnja" model="hr.department">
+        <field name="name">Proizvodnja</field>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="job_brav_cjev_3" model="hr.job">
+        <field name="name">Monter bravar cjevar III klase</field>
+        <field name="department_id" ref="dep_proizvodnja"/>
+
+        <field name="contract_type_id" ref="hr.contract_type_permanent"/>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+
+    <record id="job_varilac" model="hr.job">
+        <field name="name">Varilac</field>
+        <field name="department_id" ref="dep_proizvodnja"/>
+        <field name="contract_type_id" ref="hr.contract_type_permanent"/>
+        <field name="company_id" search="[('name','ilike','FBIH Manufacture1 doo Zenica')]" model="res.company"/>
+    </record>
+-->
+
+<!--
+    <record id="res_address_test01" model="res.partner">
+        <field name="name">Test radnik FBiH01</field>
+        <field name="street">Juraja Najtharta 6</field>
+        <field name="city_id"  ref="l10n_bs.city_ba_sa" />
+
+        <field name="phone">+387 61 141311</field>
+        <field name="email">test1@test.out.ba</field>
+        <field name="create_date">2010-01-01 00:00:00</field>
+        <field name="type">private</field>
+    </record>
+
+    <record id="hr_employee_bs_fbih01" model="hr.employee">
+        <field name="company_id" ref="base.main_company" />
+        <field name="active" eval="1" />
+        <field name="name">Test radnik FBiH01</field>
+        <field name="address_home_id" ref="l10n_bs_hr_payroll.res_address_test01" />
+        <field name="marital"></field>
+        <field name="certificate"></field>
+        <field name="country_id" ref="base.ba"/>
+        <field name="identification_id">0301970199919</field>
+        <field name="passport_id">PSBH0001</field>
+        <field name="work_phone">+38761141311</field>
+    </record>
+
+
+    <record id="hr_contract_test01" model="hr.contract">
+        <field name="name">Test radnik FBiH01 METAL Contract 2020</field>
+        <field name="state">open</field>
+        <field name="department_id" ref="dep_proizvodnja"/>
+        <field name="job_id" ref="job_varilac"/>
+        <field name="date_start" eval="datetime(2020, 1, 1).date()" />
+        <field name="date_end" eval="datetime(2023, 1, 1).date()" />
+        <field name="struct_id" ref="structure_fbih_met" />
+        <field name="structure_type_id" ref="hr_contract.structure_type_employee" />
+        <field name="employee_id" ref="hr_employee_bs_fbih01" />
+        <field name="notes">Contract for Test Radnik FBiH01</field>
+        <field eval="1000.00" name="wage" />
+        <field eval="1.1" name="br_bod" />
+        <field eval="0.60" name="koef_mr" />
+        <field eval="1.5" name="koef_lo" />
+    </record>
+-->
+
+
+    <!-- hernad ovo treba izbrisati! Public time off
+        <record id="resource_public_time_off_1" model="resource.calendar.leaves">
+            <field name="name">Public Time Off</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="calendar_id" ref="resource.resource_calendar_std"/>
+            <field name="date_from" eval="(datetime.today() + relativedelta(days=+8)).strftime('%Y-%m-%d 07:00:00')"></field>
+            <field name="date_to" eval="(datetime.today() + relativedelta(days=+8)).strftime('%Y-%m-%d 16:00:00')"></field>
+        </record>
+    -->
+
+</odoo>

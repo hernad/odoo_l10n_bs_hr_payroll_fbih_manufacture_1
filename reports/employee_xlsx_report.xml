@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+<!--
+    <report
+            id="action_payroll_fbih_manufacture_1_xlsx_report"
+            model="payroll.fbih_manufacture_1.report.wizard"
+            string="Generate XLSX Report"
+            report_type="xlsx"
+            name="l10n_bs_hr_payroll_fbih_manufacture_1.employee_xlsx_report"
+            file="payroll_fbih_manufacture_1_xlsx_report"
+            attachment_use="False"
+    />
+-->
+
+</odoo>

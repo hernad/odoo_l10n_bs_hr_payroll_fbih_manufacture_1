@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+
+    <record model="ir.ui.view" id="payroll_reporting_fb_form_view">
+        <field name="name">fbih_manufacture_1_pdf_form_view</field>
+        <field name="model">payroll.fbih_manufacture_1.wizard.pdf</field>
+        <field name="arch" type="xml">
+            <form string="Payroll Report">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group>
+                        <field name="employee_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Print" name="action_print_pdf_report" type="object" class="btn-primary"/>
+                   <!--
+                      <button string="Generate xlsx" name="action_generate_xlsx_report" type="object" class="btn-primary"/>
+                   --> 
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_payroll_fbih_manufacture_1_pdf_report" model="ir.actions.act_window">
+        <field name="name">PDF Report</field>
+        <field name="res_model">payroll.fbih_manufacture_1.wizard.pdf</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+  <!--  
+    <record id="action_payroll_fbih_manufacture_1_xlsx_report" model="ir.actions.act_window">
+        <field name="name">XLSX Report</field>
+        <field name="res_model">report.payroll.fbih_manufacture_1.xlsx</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+  -->
+
+
+
+</odoo>
